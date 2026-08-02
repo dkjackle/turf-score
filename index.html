@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Turf Score</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F3D2E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Turf Score">
+<link rel="icon" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --turf-deep:#0F3D2E;
+    --turf-mid:#1F5C43;
+    --turf-line:#EFE9D8;
+    --chalk:#F5F1E6;
+    --amber:#E0A83E;
+    --wicket-red:#C1443A;
+    --dot-grey:#3E6B57;
+    --shadow:rgba(0,0,0,0.25);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse at top, var(--turf-mid), var(--turf-deep) 70%);
+    font-family:'DM Sans', sans-serif;
+    color:var(--chalk);
+    min-height:100vh;
+    padding:18px 14px 40px;
+  }
+  .wrap{max-width:480px; margin:0 auto;}
+  h1.brand{
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    font-size:14px;
+    color:var(--amber);
+    text-align:center;
+    margin:0 0 18px;
+    opacity:0.9;
+  }
+  .card{
+    background:rgba(0,0,0,0.18);
+    border:1px solid rgba(239,233,216,0.14);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:0 8px 24px var(--shadow);
+  }
+  label{
+    display:block;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:rgba(245,241,230,0.65);
+    margin:14px 0 6px;
+  }
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number]{
+    width:100%;
+    background:rgba(245,241,230,0.08);
+    border:1px solid rgba(245,241,230,0.25);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:16px;
+    color:var(--chalk);
+    font-family:'DM Sans', sans-serif;
+  }
+  input::placeholder{color:rgba(245,241,230,0.4);}
+  .row{display:flex; gap:10px;}
+  .row > div{flex:1;}
+  button{
+    font-family:'DM Sans', sans-serif;
+    cursor:pointer;
+    border:none;
+    -webkit-appearance:none;
+  }
+  .btn-primary{
+    width:100%;
+    margin-top:20px;
+    background:var(--amber);
+    color:#26210B;
+    font-weight:700;
+    font-size:16px;
+    padding:15px;
+    border-radius:12px;
+    letter-spacing:0.02em;
+  }
+  .btn-primary:active{transform:scale(0.98);}
+  .btn-primary:disabled{opacity:0.45;}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid rgba(245,241,230,0.3);
+    color:var(--chalk);
+    padding:10px 16px;
+    border-radius:10px;
+    font-size:13px;
+    font-weight:500;
+  }
+  .btn-block{width:100%; margin-bottom:10px; text-align:left; padding:16px; border-radius:12px;}
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:16px;
+    background:rgba(245,241,230,0.06);
+    border:1px solid rgba(245,241,230,0.16);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .toggle-row .toggle-label{font-size:14px; font-weight:500;}
+  .toggle-row .toggle-sub{font-size:11px; color:rgba(245,241,230,0.55); margin-top:2px;}
+  .switch{position:relative; width:44px; height:26px; flex-shrink:0; margin-left:12px;}
+  .switch input{opacity:0; width:0; height:0;}
+  .slider{position:absolute; cursor:pointer; inset:0; background:rgba(245,241,230,0.25); border-radius:999px; transition:0.15s;}
+  .slider:before{position:absolute; content:""; height:20px; width:20px; left:3px; top:3px; background:var(--chalk); border-radius:50%; transition:0.15s;}
+  .switch input:checked + .slider{background:var(--amber);}
+  .switch input:checked + .slider:before{transform:translateX(18px); background:#26210B;}
+  .extra-fields{margin-top:2px; padding-top:6px; border-top:1px dashed rgba(245,241,230,0.15);}
+  .hint{font-size:11px; color:rgba(245,241,230,0.5); margin-top:4px; line-height:1.4;}
+
+  .board{text-align:center; padding:22px 18px 18px;}
+  .teams-line{font-family:'Oswald', sans-serif; text-transform:uppercase; letter-spacing:0.1em; font-size:13px; color:var(--amber); margin-bottom:4px;}
+  .batting-team{font-family:'Oswald', sans-serif; font-size:19px; font-weight:500; letter-spacing:0.03em; margin-bottom:10px;}
+  .score-digits{font-family:'Oswald', sans-serif; font-weight:700; font-size:64px; line-height:1; letter-spacing:0.01em;}
+  .score-digits .wk{color:var(--amber);}
+  .sub-line{margin-top:8px; font-size:14px; color:rgba(245,241,230,0.75); display:flex; justify-content:center; gap:18px; flex-wrap:wrap;}
+  .sub-line b{color:var(--chalk); font-weight:600;}
+  .target-line{margin-top:10px; font-size:13px; color:var(--amber); font-weight:500;}
+
+  .over-panel{padding:14px 16px;}
+  .over-panel-title, .pad-title{font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:rgba(245,241,230,0.55); margin-bottom:10px;}
+  .dots{display:flex; flex-wrap:wrap; gap:8px;}
+  .dot{min-width:34px; height:34px; padding:0 4px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Oswald', sans-serif; font-weight:600; font-size:13px; background:var(--dot-grey); color:var(--chalk);}
+  .dot.runs4{background:#2E7D5B;}
+  .dot.runs6{background:var(--amber); color:#26210B; border-radius:8px;}
+  .dot.wicket{background:var(--wicket-red); border-radius:8px;}
+  .dot.extra{background:rgba(224,168,62,0.35); color:var(--amber); font-size:11px; border-radius:8px;}
+
+  .runs-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:12px;}
+  .run-btn{aspect-ratio:1; border-radius:50%; background:rgba(245,241,230,0.1); border:1px solid rgba(245,241,230,0.2); color:var(--chalk); font-family:'Oswald', sans-serif; font-size:22px; font-weight:600;}
+  .run-btn:active{background:rgba(245,241,230,0.25); transform:scale(0.96);}
+  .run-btn.six{background:var(--amber); color:#26210B; border:none;}
+  .extras-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:12px;}
+  .extra-btn{padding:12px 4px; border-radius:10px; background:rgba(224,168,62,0.16); border:1px solid rgba(224,168,62,0.4); color:var(--amber); font-size:13px; font-weight:700; letter-spacing:0.02em;}
+  .extra-btn:active{background:rgba(224,168,62,0.3);}
+  .action-row{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .wicket-btn{padding:14px; border-radius:10px; background:var(--wicket-red); color:var(--chalk); font-weight:700; font-size:14px; letter-spacing:0.03em; text-transform:uppercase;}
+  .wicket-btn:active{opacity:0.85;}
+  .undo-btn{padding:14px; border-radius:10px; background:transparent; border:1px solid rgba(245,241,230,0.3); color:var(--chalk); font-weight:600; font-size:14px;}
+  button:disabled{opacity:0.35;}
+  .footer-row{display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:10px;}
+  .hidden{display:none !important;}
+
+  .result-card{text-align:center; padding:30px 20px;}
+  .result-title{font-family:'Oswald', sans-serif; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:var(--amber); margin-bottom:10px;}
+  .result-team{font-family:'Oswald', sans-serif; font-size:26px; font-weight:600; margin-bottom:6px;}
+  .result-margin{font-size:15px; color:rgba(245,241,230,0.8);}
+  .innings-note{font-size:12px; color:rgba(245,241,230,0.55); text-align:center; margin-top:-4px;}
+
+  .crease-panel{display:flex; justify-content:space-between; gap:10px; padding:14px 16px;}
+  .crease-side{flex:1;}
+  .crease-name{font-size:14px; font-weight:700; display:flex; align-items:center; gap:6px;}
+  .crease-name .bat-dot{width:7px; height:7px; border-radius:50%; background:var(--amber);}
+  .crease-stat{font-size:12px; color:rgba(245,241,230,0.65); margin-top:2px;}
+  .bowl-line{display:flex; justify-content:space-between; align-items:center; padding-top:10px; margin-top:10px; border-top:1px solid rgba(245,241,230,0.14); font-size:13px;}
+  .bowl-line b{font-weight:700;}
+
+  .home-icon{width:96px; height:96px; margin:6px auto 14px; display:block; border-radius:24px;}
+  .home-btn{display:flex; align-items:center; gap:14px;}
+  .home-btn .ico{font-size:22px; width:34px; text-align:center;}
+  .home-btn .txt b{display:block; font-size:15px;}
+  .home-btn .txt span{display:block; font-size:12px; color:rgba(245,241,230,0.55); margin-top:2px;}
+
+  .modal-backdrop{position:fixed; inset:0; background:rgba(6,20,14,0.7); display:flex; align-items:flex-end; justify-content:center; z-index:50; padding:0;}
+  .modal-backdrop.center{align-items:center; padding:16px;}
+  .modal-card{
+    background:#123B2C;
+    border:1px solid rgba(245,241,230,0.16);
+    border-radius:18px 18px 0 0;
+    padding:20px;
+    width:100%;
+    max-width:480px;
+    box-shadow:0 -10px 30px rgba(0,0,0,0.4);
+  }
+  .modal-backdrop.center .modal-card{border-radius:16px;}
+  .modal-title{font-family:'Oswald', sans-serif; font-size:16px; font-weight:600; margin-bottom:4px;}
+  .modal-sub{font-size:12px; color:rgba(245,241,230,0.6); margin-bottom:14px;}
+  .modal-actions{display:flex; gap:10px; margin-top:16px;}
+  .modal-actions button{flex:1; padding:13px; border-radius:10px; font-size:14px; font-weight:700;}
+  .modal-actions .primary{background:var(--amber); color:#26210B;}
+  .modal-actions .secondary{background:transparent; border:1px solid rgba(245,241,230,0.3); color:var(--chalk);}
+
+  #toastRoot{position:fixed; left:0; right:0; bottom:18px; display:flex; justify-content:center; z-index:80; pointer-events:none;}
+  .toast{background:#1B1B1B; color:var(--chalk); padding:11px 18px; border-radius:999px; font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,0.4); opacity:0; transform:translateY(10px); transition:0.2s;}
+  .toast.show{opacity:1; transform:translateY(0);}
+
+  .history-item{display:flex; justify-content:space-between; align-items:center; padding:13px 4px; border-bottom:1px solid rgba(245,241,230,0.1);}
+  .history-item:last-child{border-bottom:none;}
+  .history-item .teams{font-size:14px; font-weight:600;}
+  .history-item .meta{font-size:12px; color:rgba(245,241,230,0.55); margin-top:2px;}
+  .history-item .arrow{opacity:0.5;}
+  .empty-state{text-align:center; padding:30px 10px; color:rgba(245,241,230,0.55); font-size:13px;}
+
+  table.scorecard{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px;}
+  table.scorecard th{text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:rgba(245,241,230,0.5); padding:6px 4px; border-bottom:1px solid rgba(245,241,230,0.2);}
+  table.scorecard td{padding:7px 4px; border-bottom:1px solid rgba(245,241,230,0.08);}
+  .scorecard-title{font-family:'Oswald', sans-serif; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color:var(--amber); margin:16px 0 8px;}
+  .scorecard-title:first-child{margin-top:0;}
+
+  .share-box{display:flex; align-items:center; justify-content:space-between; background:rgba(224,168,62,0.14); border:1px solid rgba(224,168,62,0.35); border-radius:10px; padding:10px 14px; margin-top:10px;}
+  .share-box .code{font-family:'Oswald', sans-serif; font-size:18px; letter-spacing:0.12em; color:var(--amber); font-weight:700;}
+  .share-box .label{font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:rgba(245,241,230,0.55);}
+  .live-dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:#4CAF7D; margin-right:5px; animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%{opacity:1;}50%{opacity:0.3;}100%{opacity:1;}}
+  .watch-status{text-align:center; font-size:13px; color:rgba(245,241,230,0.65); margin-top:8px;}
+  .over-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .over-row:last-child{margin-bottom:0;}
+  .over-row .over-label{font-family:'Oswald', sans-serif; font-size:11px; color:rgba(245,241,230,0.5); width:38px; flex-shrink:0;}
+  .over-row .dots{flex:1;}
+
+  #fxRoot{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:70;}
+  .fx-pop{
+    font-family:'Oswald', sans-serif;
+    font-weight:700;
+    font-size:56px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    text-shadow:0 4px 18px rgba(0,0,0,0.5);
+    opacity:0;
+    transform:scale(0.4) rotate(-6deg);
+    animation:fxpop 900ms cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  .fx-six{color:var(--amber);}
+  .fx-four{color:#7FD8A6;}
+  .fx-wicket{color:var(--wicket-red);}
+  @keyframes fxpop{
+    0%{opacity:0; transform:scale(0.3) rotate(-8deg);}
+    18%{opacity:1; transform:scale(1.15) rotate(2deg);}
+    30%{transform:scale(1) rotate(0deg);}
+    75%{opacity:1; transform:scale(1) rotate(0deg);}
+    100%{opacity:0; transform:scale(1.05) translateY(-14px);}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="brand">Turf Score</h1>
+
+  <div id="screenHome">
+    <img src="icons/icon-192.png" class="home-icon" alt="Turf Score">
+    <div class="card">
+      <button class="btn-ghost btn-block home-btn" id="goNewMatch">
+        <span class="ico">1</span>
+        <span class="txt"><b>New match</b><span>Set up teams and start scoring</span></span>
+      </button>
+      <button class="btn-ghost btn-block home-btn" id="goResume" style="display:none;">
+        <span class="ico">2</span>
+        <span class="txt"><b>Resume match</b><span>Continue the match in progress</span></span>
+      </button>
+      <button class="btn-ghost btn-block home-btn" id="goHistory">
+        <span class="ico">3</span>
+        <span class="txt"><b>Match history</b><span>Past scorecards saved on this device</span></span>
+      </button>
+      <button class="btn-ghost btn-block home-btn" id="goWatch" style="margin-bottom:0;">
+        <span class="ico">4</span>
+        <span class="txt"><b>Watch live score</b><span>Follow a match someone else is scoring</span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="screenSetup" class="hidden">
+    <div class="card">
+      <label>Team batting first</label>
+      <input type="text" id="teamA" placeholder="e.g. Kings XI" maxlength="20">
+      <label>Team fielding first</label>
+      <input type="text" id="teamB" placeholder="e.g. Royal Strikers" maxlength="20">
+      <div class="row">
+        <div>
+          <label>Overs per innings</label>
+          <input type="number" id="oversLimit" value="6" min="1" max="50">
+        </div>
+        <div>
+          <label>Players per side</label>
+          <input type="number" id="playersLimit" value="8" min="2" max="11">
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Track batsman &amp; bowler names</div>
+          <div class="toggle-sub">Optional - shows who's on strike and bowling figures</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="trackPlayers"><span class="slider"></span></label>
+      </div>
+      <div class="extra-fields hidden" id="playerFields" style="margin-top:12px;">
+        <label>Opening batsman 1</label>
+        <input type="text" id="bat1" placeholder="Batsman 1" maxlength="20">
+        <label>Opening batsman 2</label>
+        <input type="text" id="bat2" placeholder="Batsman 2" maxlength="20">
+        <label>Opening bowler</label>
+        <input type="text" id="bowl1" placeholder="Bowler" maxlength="20">
+        <label>Team A squad <span style="text-transform:none; letter-spacing:0; opacity:0.6;">(optional — one name per line, max <span id="squadAMax">-</span>)</span></label>
+        <textarea id="squadA" rows="3" placeholder="One name per line" style="width:100%;background:rgba(245,241,230,0.08);border:1px solid rgba(245,241,230,0.25);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--chalk);font-family:'DM Sans',sans-serif;resize:vertical;"></textarea>
+        <label>Team B squad <span style="text-transform:none; letter-spacing:0; opacity:0.6;">(optional, max <span id="squadBMax">-</span>)</span></label>
+        <textarea id="squadB" rows="3" placeholder="One name per line" style="width:100%;background:rgba(245,241,230,0.08);border:1px solid rgba(245,241,230,0.25);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--chalk);font-family:'DM Sans',sans-serif;resize:vertical;"></textarea>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Share live score</div>
+          <div class="toggle-sub">Optional - get a code others can watch from their phone</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="enableShare"><span class="slider"></span></label>
+      </div>
+      <div class="hint hidden" id="shareNotConfiguredHint">Live share isn't set up on this deployment yet — see README.md for the 5-minute Firebase setup.</div>
+
+      <button class="btn-primary" id="startBtn">Start Match</button>
+      <button class="btn-ghost btn-block" id="backFromSetup" style="margin-top:10px; text-align:center;">Back</button>
+    </div>
+  </div>
+
+  <div id="gameArea" class="hidden">
+    <div class="card board">
+      <div class="teams-line" id="matchLine"></div>
+      <div class="batting-team" id="battingTeamName"></div>
+      <div class="score-digits"><span id="runsVal">0</span>/<span class="wk" id="wicketsVal">0</span></div>
+      <div class="sub-line">
+        <span>Overs <b id="oversVal">0.0</b></span>
+        <span>CRR <b id="crrVal">0.00</b></span>
+      </div>
+      <div class="target-line hidden" id="targetLine"></div>
+      <div class="share-box hidden" id="shareBox">
+        <div><div class="label">Watch code</div><div class="code" id="shareCodeVal">------</div></div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-ghost" id="copyCodeBtn">Copy</button>
+          <button class="btn-ghost" id="waCodeBtn">WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card hidden" id="creaseCard">
+      <div class="crease-panel">
+        <div class="crease-side">
+          <div class="crease-name"><span class="bat-dot" id="strikeDotA"></span><span id="strikerName">-</span></div>
+          <div class="crease-stat" id="strikerStat">0 (0)</div>
+        </div>
+        <div class="crease-side">
+          <div class="crease-name"><span class="bat-dot hidden" id="strikeDotB"></span><span id="nonStrikerName">-</span></div>
+          <div class="crease-stat" id="nonStrikerStat">0 (0)</div>
+        </div>
+      </div>
+      <div class="bowl-line">
+        <span id="bowlerName">-</span>
+        <b id="bowlerFigures">0-0-0</b>
+      </div>
+      <div class="bowl-line" style="border-top:none; padding-top:4px; margin-top:0;">
+        <span style="opacity:0.6;">Partnership</span>
+        <b id="partnershipVal">0 (0)</b>
+      </div>
+    </div>
+
+    <div class="card over-panel">
+      <div class="over-panel-title">This over</div>
+      <div class="dots" id="overDots"></div>
+    </div>
+
+    <div class="card">
+      <div class="pad-title">Runs off the bat</div>
+      <div class="runs-grid">
+        <button class="run-btn" data-run="0">0</button>
+        <button class="run-btn" data-run="1">1</button>
+        <button class="run-btn" data-run="2">2</button>
+        <button class="run-btn" data-run="3">3</button>
+        <button class="run-btn" data-run="4">4</button>
+        <button class="run-btn" data-run="5">5</button>
+        <button class="run-btn six" data-run="6">6</button>
+      </div>
+      <div class="pad-title">Extras <span style="opacity:0.6; text-transform:none; letter-spacing:0;">(+1 run each tap)</span></div>
+      <div class="extras-grid">
+        <button class="extra-btn" data-extra="wd">WIDE</button>
+        <button class="extra-btn" data-extra="nb">NO BALL</button>
+        <button class="extra-btn" data-extra="b">BYE</button>
+        <button class="extra-btn" data-extra="lb">LEG BYE</button>
+      </div>
+      <div class="action-row">
+        <button class="wicket-btn" id="wicketBtn">Wicket</button>
+        <button class="undo-btn" id="undoBtn">Undo last ball</button>
+      </div>
+      <div class="footer-row">
+        <button class="btn-ghost" id="swapStrikeBtn">Swap strike</button>
+        <button class="btn-ghost" id="endInningsBtn">End innings</button>
+        <button class="btn-ghost" id="resetBtn">Abandon</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea" class="hidden">
+    <div class="card result-card">
+      <div class="result-title">Match Result</div>
+      <div class="result-team" id="resultTeam"></div>
+      <div class="result-margin" id="resultMargin"></div>
+    </div>
+    <div class="card hidden" id="scorecardCard"></div>
+    <button class="btn-ghost btn-block" id="shareResultBtn" style="text-align:center;">Share result on WhatsApp</button>
+    <button class="btn-primary" id="newMatchBtn">New match</button>
+    <button class="btn-ghost btn-block" id="resultHomeBtn" style="margin-top:10px; text-align:center;">Back to home</button>
+  </div>
+
+  <div id="screenHistoryList" class="hidden">
+    <div class="card">
+      <div id="historyListBody"><div class="empty-state">No saved matches yet.</div></div>
+    </div>
+    <button class="btn-ghost btn-block" id="backFromHistory" style="text-align:center;">Back to home</button>
+  </div>
+
+  <div id="screenHistoryDetail" class="hidden">
+    <div class="card result-card">
+      <div class="result-title" id="hdTitle">Match Result</div>
+      <div class="result-team" id="hdTeam"></div>
+      <div class="result-margin" id="hdMargin"></div>
+    </div>
+    <div class="card hidden" id="hdScorecard"></div>
+    <button class="btn-ghost btn-block" id="backFromHistoryDetail" style="text-align:center;">Back to history</button>
+  </div>
+
+  <div id="screenWatch" class="hidden">
+    <div class="card" id="watchJoinCard">
+      <label>Enter watch code</label>
+      <input type="text" id="watchCodeInput" placeholder="e.g. 7K3P9Q" maxlength="8" style="text-transform:uppercase;">
+      <button class="btn-primary" id="watchJoinBtn">Watch</button>
+      <div class="hint">Ask the scorer for their 6-character code - it's shown on their scoring screen.</div>
+    </div>
+    <div class="card board hidden" id="watchBoardCard">
+      <div class="teams-line"><span class="live-dot"></span><span id="wMatchLine"></span></div>
+      <div class="batting-team" id="wBattingTeamName"></div>
+      <div class="score-digits"><span id="wRunsVal">0</span>/<span class="wk" id="wWicketsVal">0</span></div>
+      <div class="sub-line">
+        <span>Overs <b id="wOversVal">0.0</b></span>
+        <span>CRR <b id="wCrrVal">0.00</b></span>
+      </div>
+      <div class="target-line hidden" id="wTargetLine"></div>
+      <div class="innings-note hidden" id="wPrevInnings"></div>
+      <div class="innings-note hidden" id="wPartnership"></div>
+      <div class="watch-status" id="watchStatus">Live - updates every few seconds</div>
+    </div>
+    <div class="card hidden" id="wAwardsCard"></div>
+    <div class="card hidden" id="wOversCard">
+      <div class="over-panel-title">Over by over</div>
+      <div id="wOversList"></div>
+    </div>
+    <div class="card hidden" id="wScorecardCard"></div>
+    <button class="btn-ghost btn-block" id="stopWatchBtn" style="text-align:center; margin-top:10px;">Stop watching</button>
+  </div>
+
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<div id="fxRoot"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = 'turf-cricket-match';
+  var HISTORY_KEY = 'turf-cricket-history';
+  var WATCH_KEY = 'turf-cricket-watch-code';
+  var HISTORY_MAX = 30;
+  var WATCH_POLL_MS = 3000;
+
+  // ---------------------------------------------------------------
+  // LIVE SHARE SETUP (one-time, done by whoever owns this deployment)
+  // Live score sharing between two separate phones needs a real shared
+  // database on the internet — not something a static webpage has on its
+  // own. Create a free Firebase Realtime Database (no credit card, ~5 min):
+  //   1. console.firebase.google.com -> Add project -> any name
+  //   2. Build -> Realtime Database -> Create Database -> Start in test mode
+  //   3. Copy the URL shown at the top of that page
+  //   4. Paste it below, replacing the placeholder, then commit + push
+  // Until this is set to a real URL, "Share live score" will show a
+  // friendly notice instead of silently failing.
+  // ---------------------------------------------------------------
+  var FIREBASE_DB_URL = 'https://turf-scoreboard-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+  function shareConfigured(){
+    return FIREBASE_DB_URL.indexOf('YOUR-PROJECT') === -1 && /^https:\/\/.+firebase/.test(FIREBASE_DB_URL);
+  }
+
+  var state = null;
+  var historyList = [];
+  var watchTimer = null;
+  var watchCode = null;
+
+  // ---------------- local (per-device) persistence ----------------
+  function localGet(key){
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  }
+  function localSet(key, val){
+    try{ localStorage.setItem(key, val); return true; }catch(e){ return false; }
+  }
+  function localRemove(key){
+    try{ localStorage.removeItem(key); }catch(e){}
+  }
+
+  function safe(fn){
+    return function(){
+      try{ return fn.apply(this, arguments); }
+      catch(err){
+        console.error(err);
+        showToast('Something went wrong - your match data is safe. Please try again.');
+      }
+    };
+  }
+
+  function showToast(msg){
+    try{
+      var root = document.getElementById('toastRoot');
+      if(!root) return;
+      var el = document.createElement('div');
+      el.className = 'toast';
+      el.textContent = msg;
+      root.innerHTML = '';
+      root.appendChild(el);
+      requestAnimationFrame(function(){ el.classList.add('show'); });
+      setTimeout(function(){
+        el.classList.remove('show');
+        setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 250);
+      }, 2600);
+    }catch(e){}
+  }
+
+  function clamp(n, min, max){
+    n = Number(n);
+    if(isNaN(n)) return min;
+    return Math.max(min, Math.min(max, n));
+  }
+
+  function esc(str){
+    var d = document.createElement('div');
+    d.textContent = (str === undefined || str === null) ? '' : String(str);
+    return d.innerHTML;
+  }
+
+  function randomCode(){
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = '';
+    for(var i=0;i<6;i++){ out += chars.charAt(Math.floor(Math.random()*chars.length)); }
+    return out;
+  }
+
+  function showModal(opts){
+    var root = document.getElementById('modalRoot');
+    root.innerHTML = '';
+    var backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop' + (opts.center ? ' center' : '');
+    var card = document.createElement('div');
+    card.className = 'modal-card';
+
+    var title = document.createElement('div');
+    title.className = 'modal-title';
+    title.textContent = opts.title || '';
+    card.appendChild(title);
+
+    if(opts.sub){
+      var sub = document.createElement('div');
+      sub.className = 'modal-sub';
+      sub.textContent = opts.sub;
+      card.appendChild(sub);
+    }
+
+    var inputs = []; // each entry: {focusEl, getValue}
+    (opts.fields || []).forEach(function(f){
+      var lbl = document.createElement('label');
+      lbl.textContent = f.label;
+      lbl.style.marginTop = '10px';
+      card.appendChild(lbl);
+
+      if(f.type === 'select' && f.options && f.options.length){
+        var sel = document.createElement('select');
+        sel.style.cssText = 'width:100%;background:rgba(245,241,230,0.08);border:1px solid rgba(245,241,230,0.25);border-radius:10px;padding:12px 14px;font-size:16px;color:var(--chalk);font-family:"DM Sans",sans-serif;';
+        f.options.forEach(function(name){
+          var o = document.createElement('option');
+          o.value = name; o.textContent = name;
+          sel.appendChild(o);
+        });
+        var otherOpt = document.createElement('option');
+        otherOpt.value = '__other__'; otherOpt.textContent = 'Other (type a name)';
+        sel.appendChild(otherOpt);
+        card.appendChild(sel);
+
+        var otherInput = document.createElement('input');
+        otherInput.type = 'text';
+        otherInput.placeholder = f.placeholder || 'Name';
+        otherInput.maxLength = 24;
+        otherInput.style.marginTop = '8px';
+        otherInput.classList.add('hidden');
+        card.appendChild(otherInput);
+
+        sel.addEventListener('change', function(){
+          otherInput.classList.toggle('hidden', sel.value !== '__other__');
+          if(sel.value === '__other__') otherInput.focus();
+        });
+
+        inputs.push({
+          focusEl: sel,
+          getValue: function(){ return sel.value === '__other__' ? otherInput.value.trim() : sel.value; }
+        });
+      } else {
+        var inp = document.createElement('input');
+        inp.type = f.type || 'text';
+        inp.placeholder = f.placeholder || '';
+        inp.value = f.value || '';
+        inp.maxLength = f.maxLength || 24;
+        if(f.uppercase) inp.style.textTransform = 'uppercase';
+        card.appendChild(inp);
+        inputs.push({ focusEl: inp, getValue: function(){ return inp.value.trim(); } });
+      }
+    });
+
+    var actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    if(opts.allowCancel !== false){
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'secondary';
+      cancelBtn.textContent = opts.cancelText || 'Cancel';
+      cancelBtn.addEventListener('click', function(){
+        closeModal();
+        if(opts.onCancel) opts.onCancel();
+      });
+      actions.appendChild(cancelBtn);
+    }
+
+    var submitBtn = document.createElement('button');
+    submitBtn.className = 'primary';
+    submitBtn.textContent = opts.submitText || 'OK';
+    submitBtn.addEventListener('click', function(){
+      var values = inputs.map(function(i){ return i.getValue(); });
+      closeModal();
+      if(opts.onSubmit) opts.onSubmit(values);
+    });
+    actions.appendChild(submitBtn);
+    card.appendChild(actions);
+
+    backdrop.appendChild(card);
+    root.appendChild(backdrop);
+
+    if(inputs.length){
+      setTimeout(function(){ inputs[0].focusEl.focus(); }, 50);
+      inputs[inputs.length-1].focusEl.addEventListener('keydown', function(e){
+        if(e.key === 'Enter') submitBtn.click();
+      });
+    }
+  }
+  function closeModal(){
+    var root = document.getElementById('modalRoot');
+    if(root) root.innerHTML = '';
+  }
+
+  function parseSquad(text, max){
+    if(!text) return [];
+    var lines = text.split('\n').map(function(s){ return s.trim(); }).filter(function(s){ return s.length; });
+    return typeof max === 'number' ? lines.slice(0, max) : lines.slice(0, 20);
+  }
+
+  var screens = ['screenHome','screenSetup','gameArea','resultArea','screenHistoryList','screenHistoryDetail','screenWatch'];
+  function showScreen(id){
+    stopWatching();
+    screens.forEach(function(s){
+      var el = document.getElementById(s);
+      if(el) el.classList.toggle('hidden', s !== id);
+    });
+  }
+
+  function goHome(){
+    var resumeBtn = document.getElementById('goResume');
+    resumeBtn.style.display = (state && !state.matchOver) ? 'flex' : 'none';
+    showScreen('screenHome');
+  }
+
+  function freshInnings(oversLimit, playersLimit, teamName){
+    return {
+      team: teamName,
+      history: [],
+      legalBalls: 0,
+      runs: 0,
+      wickets: 0,
+      oversLimit: oversLimit,
+      playersLimit: playersLimit,
+      complete: false,
+      batsmen: [],
+      bowlers: [],
+      strikerIdx: 0,
+      nonStrikerIdx: 1,
+      currentBowlerIdx: 0,
+      fallOfWickets: [],
+      partnershipStartRuns: 0,
+      partnershipStartBalls: 0
+    };
+  }
+
+  function findOrAddBowler(inn, name){
+    name = (name || '').trim() || ('Bowler ' + (inn.bowlers.length+1));
+    for(var i=0;i<inn.bowlers.length;i++){
+      if(inn.bowlers[i].name.toLowerCase() === name.toLowerCase()) return i;
+    }
+    inn.bowlers.push({name:name, ballsBowled:0, runsConceded:0, wickets:0});
+    return inn.bowlers.length - 1;
+  }
+
+  function newMatchState(teamA, teamB, oversLimit, playersLimit, trackPlayers, enableShare, openers, squadA, squadB){
+    var m = {
+      teamA: teamA,
+      teamB: teamB,
+      oversLimit: oversLimit,
+      playersLimit: playersLimit,
+      trackPlayers: !!trackPlayers,
+      shareEnabled: !!enableShare,
+      shareCode: enableShare ? randomCode() : null,
+      currentInnings: 1,
+      target: null,
+      innings1: freshInnings(oversLimit, playersLimit, teamA),
+      innings2: null,
+      matchOver: false,
+      result: null,
+      awards: null,
+      squadA: squadA || [],
+      squadB: squadB || [],
+      matchId: 'm' + Date.now(),
+      startedAt: new Date().toISOString()
+    };
+    if(trackPlayers && openers){
+      var inn = m.innings1;
+      inn.batsmen.push({name: openers.bat1 || 'Batsman 1', runs:0, balls:0, out:false});
+      inn.batsmen.push({name: openers.bat2 || 'Batsman 2', runs:0, balls:0, out:false});
+      inn.strikerIdx = 0; inn.nonStrikerIdx = 1;
+      inn.currentBowlerIdx = findOrAddBowler(inn, openers.bowl1);
+    }
+    return m;
+  }
+
+  function activeInnings(){
+    if(!state) return null;
+    return state.currentInnings === 1 ? state.innings1 : state.innings2;
+  }
+
+  function saveState(){
+    localSet(STORAGE_KEY, JSON.stringify(state));
+  }
+  function clearSavedState(){
+    localRemove(STORAGE_KEY);
+  }
+
+  function loadState(cb){
+    var raw = localGet(STORAGE_KEY);
+    if(raw){
+      try{
+        var parsed = JSON.parse(raw);
+        if(parsed && parsed.teamA) state = parsed;
+      }catch(e){}
+    }
+    if(cb) cb();
+  }
+
+  function loadHistory(cb){
+    historyList = [];
+    var raw = localGet(HISTORY_KEY);
+    if(raw){
+      try{
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed)) historyList = parsed;
+      }catch(e){ historyList = []; }
+    }
+    if(cb) cb();
+  }
+
+  function saveHistory(){
+    if(historyList.length > HISTORY_MAX) historyList = historyList.slice(0, HISTORY_MAX);
+    localSet(HISTORY_KEY, JSON.stringify(historyList));
+  }
+
+  function recordBall(inn, entry){
+    inn.history.push(entry);
+    inn.runs += entry.runs;
+    if(entry.legal) inn.legalBalls += 1;
+    if(entry.type === 'w'){
+      inn.wickets += 1;
+      var dismissedName = (state.trackPlayers && inn.batsmen[inn.strikerIdx]) ? inn.batsmen[inn.strikerIdx].name : null;
+      inn.fallOfWickets.push({wicket: inn.wickets, score: inn.runs, batsman: dismissedName, dismissedIdx: inn.strikerIdx, legalBalls: inn.legalBalls});
+      inn.partnershipStartRuns = inn.runs;
+      inn.partnershipStartBalls = inn.legalBalls;
+    }
+    if(state.trackPlayers) updatePlayerStats(inn, entry);
+  }
+
+  function updatePlayerStats(inn, entry){
+    if(!inn.batsmen.length || !inn.bowlers.length) return;
+    var bat = inn.batsmen[inn.strikerIdx];
+    var bowler = inn.bowlers[inn.currentBowlerIdx];
+    if(!bat || !bowler) return;
+
+    if(entry.type === 'run'){
+      bat.runs += entry.runs; bat.balls += 1;
+      bowler.runsConceded += entry.runs; bowler.ballsBowled += 1;
+      if(entry.runs % 2 === 1){ swapStrike(inn); entry.swapCount = (entry.swapCount||0)+1; }
+    } else if(entry.type === 'b' || entry.type === 'lb'){
+      bat.balls += 1;
+      bowler.ballsBowled += 1;
+      if(entry.runs % 2 === 1){ swapStrike(inn); entry.swapCount = (entry.swapCount||0)+1; }
+    } else if(entry.type === 'wd' || entry.type === 'nb'){
+      bowler.runsConceded += entry.runs;
+    } else if(entry.type === 'w'){
+      bat.balls += 1;
+      bat.out = true;
+      bowler.ballsBowled += 1;
+      bowler.wickets += 1;
+    }
+  }
+
+  function swapStrike(inn){
+    var t = inn.strikerIdx;
+    inn.strikerIdx = inn.nonStrikerIdx;
+    inn.nonStrikerIdx = t;
+  }
+
+  function showFx(text, cls){
+    try{
+      var root = document.getElementById('fxRoot');
+      if(!root) return;
+      var el = document.createElement('div');
+      el.className = 'fx-pop ' + (cls || '');
+      el.textContent = text;
+      root.innerHTML = '';
+      root.appendChild(el);
+      setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 950);
+    }catch(e){}
+  }
+
+  function addRun(n){
+    if(!activeInnings() || activeInnings().complete) return;
+    recordBall(activeInnings(), {type:'run', runs:n, legal:true});
+    if(n === 6) showFx('SIX! 🏏', 'fx-six');
+    else if(n === 4) showFx('FOUR!', 'fx-four');
+    afterBall();
+  }
+
+  function addExtra(kind){
+    if(!activeInnings() || activeInnings().complete) return;
+    var legal = (kind === 'b' || kind === 'lb');
+    recordBall(activeInnings(), {type:kind, runs:1, legal:legal});
+    afterBall();
+  }
+
+  function addWicket(){
+    if(!activeInnings() || activeInnings().complete) return;
+    recordBall(activeInnings(), {type:'w', runs:0, legal:true});
+    showFx('OUT! 🎯', 'fx-wicket');
+    afterBall();
+  }
+
+  function undoLast(){
+    var inn = activeInnings();
+    if(!inn || inn.history.length === 0) return;
+    var last = inn.history.pop();
+    inn.runs = Math.max(0, inn.runs - last.runs);
+    if(last.legal) inn.legalBalls = Math.max(0, inn.legalBalls - 1);
+
+    if(last.type === 'w'){
+      inn.wickets = Math.max(0, inn.wickets - 1);
+      var poppedFow = inn.fallOfWickets.pop();
+      if(state.trackPlayers && poppedFow && typeof poppedFow.dismissedIdx === 'number'){
+        var dismissedBat = inn.batsmen[poppedFow.dismissedIdx];
+        if(dismissedBat){
+          // the batsman added right after this dismissal (if any) is always
+          // the last entry in the array — remove them, since undo means
+          // they never actually came in to bat
+          if(inn.batsmen[inn.batsmen.length-1] !== dismissedBat){
+            inn.batsmen.pop();
+          }
+          dismissedBat.out = false;
+          dismissedBat.balls = Math.max(0, dismissedBat.balls - 1);
+          inn.strikerIdx = poppedFow.dismissedIdx;
+        }
+        var bowlerW = inn.bowlers[inn.currentBowlerIdx];
+        if(bowlerW){
+          bowlerW.ballsBowled = Math.max(0, bowlerW.ballsBowled - 1);
+          bowlerW.wickets = Math.max(0, bowlerW.wickets - 1);
+        }
+      }
+      if(inn.fallOfWickets.length){
+        var prevFow = inn.fallOfWickets[inn.fallOfWickets.length-1];
+        inn.partnershipStartRuns = prevFow.score;
+        inn.partnershipStartBalls = prevFow.legalBalls;
+      } else {
+        inn.partnershipStartRuns = 0;
+        inn.partnershipStartBalls = 0;
+      }
+    } else if(state.trackPlayers){
+      revertPlayerStats(inn, last);
+    }
+
+    inn.complete = false;
+    state.matchOver = false;
+    saveState();
+    publishLive();
+    showGame();
+    render();
+  }
+
+  function revertPlayerStats(inn, entry){
+    if(!inn.batsmen.length || !inn.bowlers.length) return;
+    var bowler = inn.bowlers[inn.currentBowlerIdx];
+    if(!bowler) return;
+
+    if(entry.type === 'run' || entry.type === 'b' || entry.type === 'lb'){
+      var swapCount = entry.swapCount || 0;
+      // if an odd number of swaps happened on this ball, the batsman who
+      // actually faced it is currently the non-striker (swap toggled it)
+      var creditedIdx = (swapCount % 2 === 1) ? inn.nonStrikerIdx : inn.strikerIdx;
+      var bat = inn.batsmen[creditedIdx];
+      if(bat){
+        bat.balls = Math.max(0, bat.balls - 1);
+        if(entry.type === 'run') bat.runs = Math.max(0, bat.runs - entry.runs);
+      }
+      if(entry.type === 'run') bowler.runsConceded = Math.max(0, bowler.runsConceded - entry.runs);
+      bowler.ballsBowled = Math.max(0, bowler.ballsBowled - 1);
+      if(swapCount % 2 === 1) swapStrike(inn);
+    } else if(entry.type === 'wd' || entry.type === 'nb'){
+      bowler.runsConceded = Math.max(0, bowler.runsConceded - entry.runs);
+    }
+  }
+
+  function afterBall(){
+    var inn = activeInnings();
+    checkInningsComplete();
+    saveState();
+    publishLive();
+
+    if(state.trackPlayers && !inn.complete){
+      var last = inn.history[inn.history.length-1];
+      if(last && last.type === 'w'){
+        promptNewBatsman(inn);
+        return;
+      }
+      if(inn.legalBalls > 0 && inn.legalBalls % 6 === 0 && last && last.legal){
+        swapStrike(inn);
+        last.swapCount = (last.swapCount||0) + 1;
+        saveState();
+        promptNewBowler(inn);
+        return;
+      }
+    }
+    render();
+  }
+
+  function promptNewBatsman(inn){
+    var nextNum = inn.batsmen.length + 1;
+    var squad = (inn.team === state.teamA) ? state.squadA : state.squadB;
+    var usedNames = inn.batsmen.map(function(b){ return b.name.toLowerCase(); });
+    var remaining = (squad || []).filter(function(n){ return usedNames.indexOf(n.toLowerCase()) === -1; });
+    var field = remaining.length
+      ? {type:'select', label:'Batsman', options: remaining, placeholder:'Batsman ' + nextNum}
+      : {label:'Batsman name', placeholder:'Batsman ' + nextNum};
+    showModal({
+      title: 'Wicket! Next batsman',
+      sub: 'Who\'s coming in to bat?',
+      fields: [field],
+      submitText: 'Continue',
+      allowCancel: false,
+      onSubmit: function(values){
+        var name = values[0] || ('Batsman ' + nextNum);
+        inn.batsmen.push({name:name, runs:0, balls:0, out:false});
+        inn.strikerIdx = inn.batsmen.length - 1;
+        saveState();
+        publishLive();
+        render();
+      }
+    });
+  }
+
+  function promptNewBowler(inn){
+    var squad = (inn.team === state.teamA) ? state.squadB : state.squadA;
+    var lastBowlerName = inn.bowlers[inn.currentBowlerIdx] ? inn.bowlers[inn.currentBowlerIdx].name.toLowerCase() : null;
+    var options = (squad || []).filter(function(n){ return n.toLowerCase() !== lastBowlerName; });
+    var field = options.length
+      ? {type:'select', label:'Bowler', options: options, placeholder:'Bowler'}
+      : {label:'Bowler name', placeholder:'Bowler'};
+    showModal({
+      title: 'Over complete - next bowler',
+      sub: "Who's bowling the new over? (same name continues an existing bowler's figures)",
+      fields: [field],
+      submitText: 'Continue',
+      allowCancel: false,
+      onSubmit: function(values){
+        inn.currentBowlerIdx = findOrAddBowler(inn, values[0]);
+        saveState();
+        publishLive();
+        render();
+      }
+    });
+  }
+
+  function checkInningsComplete(){
+    var inn = activeInnings();
+    var oversDone = inn.legalBalls >= inn.oversLimit * 6;
+    var allOut = inn.wickets >= (inn.playersLimit - 1);
+    var chased = state.currentInnings === 2 && state.target !== null && inn.runs >= state.target;
+    if(oversDone || allOut || chased){
+      inn.complete = true;
+      if(state.currentInnings === 2) finishMatch();
+    }
+  }
+
+  function startSecondInnings(){
+    state.target = state.innings1.runs + 1;
+    state.innings2 = freshInnings(state.oversLimit, state.playersLimit, state.teamB);
+    state.currentInnings = 2;
+
+    if(state.trackPlayers){
+      var battingSquad = state.squadB || [];
+      var bowlingSquad = state.squadA || [];
+      var bat1Field = battingSquad.length ? {type:'select', label:'Opening batsman 1', options: battingSquad, placeholder:'Batsman 1'} : {label:'Opening batsman 1', placeholder:'Batsman 1'};
+      var bat2Field = battingSquad.length ? {type:'select', label:'Opening batsman 2', options: battingSquad, placeholder:'Batsman 2'} : {label:'Opening batsman 2', placeholder:'Batsman 2'};
+      var bowlField = bowlingSquad.length ? {type:'select', label:'Opening bowler', options: bowlingSquad, placeholder:'Bowler'} : {label:'Opening bowler', placeholder:'Bowler'};
+      showModal({
+        title: 'Second innings - opening pair',
+        sub: state.teamB + ' openers, and the opening bowler for ' + state.teamA + '.',
+        fields: [bat1Field, bat2Field, bowlField],
+        submitText: 'Start innings',
+        allowCancel: false,
+        onSubmit: function(values){
+          var inn = state.innings2;
+          inn.batsmen.push({name: values[0] || 'Batsman 1', runs:0, balls:0, out:false});
+          inn.batsmen.push({name: values[1] || 'Batsman 2', runs:0, balls:0, out:false});
+          inn.strikerIdx = 0; inn.nonStrikerIdx = 1;
+          inn.currentBowlerIdx = findOrAddBowler(inn, values[2]);
+          saveState();
+          publishLive();
+          render();
+        }
+      });
+    } else {
+      saveState();
+      publishLive();
+      render();
+    }
+  }
+
+  function finishMatch(){
+    state.matchOver = true;
+    var inn1 = state.innings1, inn2 = state.innings2;
+    var margin;
+    if(inn2.runs >= state.target){
+      var wicketsLeft = (state.playersLimit - 1) - inn2.wickets;
+      margin = {winner: inn2.team, text: 'Won by ' + wicketsLeft + ' wicket' + (wicketsLeft===1?'':'s')};
+    } else if(inn2.runs === state.target - 1){
+      margin = {winner: null, text: 'Match tied'};
+    } else {
+      var runMargin = (state.target - 1) - inn2.runs;
+      margin = {winner: inn1.team, text: 'Won by ' + runMargin + ' run' + (runMargin===1?'':'s')};
+    }
+    state.result = margin;
+    state.awards = computeAwards(state.innings1, state.innings2);
+    saveState();
+    publishLive();
+    saveMatchToHistory();
+    showResult();
+  }
+
+  function endInningsManually(){
+    var inn = activeInnings();
+    if(!inn) return;
+    inn.complete = true;
+    if(state.currentInnings === 1){
+      saveState();
+      render();
+    } else {
+      finishMatch();
+    }
+  }
+
+  function saveMatchToHistory(){
+    try{
+      var summary = {
+        id: state.matchId,
+        date: state.startedAt,
+        teamA: state.teamA,
+        teamB: state.teamB,
+        oversLimit: state.oversLimit,
+        target: state.target,
+        trackPlayers: state.trackPlayers,
+        innings1: compactInnings(state.innings1),
+        innings2: compactInnings(state.innings2),
+        result: state.result,
+        awards: state.awards
+      };
+      historyList.unshift(summary);
+      saveHistory();
+    }catch(e){ console.error(e); }
+  }
+
+  function compactInnings(inn){
+    if(!inn) return null;
+    return {
+      team: inn.team,
+      runs: inn.runs,
+      wickets: inn.wickets,
+      legalBalls: inn.legalBalls,
+      oversLimit: inn.oversLimit,
+      batsmen: inn.batsmen || [],
+      bowlers: inn.bowlers || [],
+      fallOfWickets: inn.fallOfWickets || []
+    };
+  }
+
+  function computeAwards(inn1, inn2){
+    var players = {};
+    function addBatting(list){
+      (list || []).forEach(function(b){
+        var k = b.name.toLowerCase();
+        if(!players[k]) players[k] = {name:b.name, runs:0, balls:0, wickets:0, runsConceded:0};
+        players[k].runs += b.runs; players[k].balls += b.balls;
+      });
+    }
+    function addBowling(list){
+      (list || []).forEach(function(b){
+        var k = b.name.toLowerCase();
+        if(!players[k]) players[k] = {name:b.name, runs:0, balls:0, wickets:0, runsConceded:0};
+        players[k].wickets += b.wickets; players[k].runsConceded += b.runsConceded;
+      });
+    }
+    if(inn1){ addBatting(inn1.batsmen); addBowling(inn1.bowlers); }
+    if(inn2){ addBatting(inn2.batsmen); addBowling(inn2.bowlers); }
+    var list = Object.keys(players).map(function(k){ return players[k]; });
+    if(!list.length) return null;
+    list.forEach(function(p){ p.points = p.runs + p.wickets * 25; });
+    var motm = list.slice().sort(function(a,b){ return b.points - a.points; })[0];
+    var topScorer = list.slice().sort(function(a,b){ return b.runs - a.runs; })[0];
+    var bowlers = list.filter(function(p){ return p.wickets > 0; });
+    var bestBowler = bowlers.length ? bowlers.sort(function(a,b){ return b.wickets - a.wickets || a.runsConceded - b.runsConceded; })[0] : null;
+    return {motm: motm, topScorer: topScorer, bestBowler: bestBowler};
+  }
+
+  function buildAwardsHTML(awards){
+    if(!awards) return '';
+    var html = '<div class="scorecard-title">Awards</div><div style="font-size:13px; line-height:1.9;">';
+    if(awards.motm){
+      html += '<div><b>Player of the Match:</b> ' + esc(awards.motm.name) + ' (' + awards.motm.runs + ' runs' + (awards.motm.wickets ? ', ' + awards.motm.wickets + ' wkts' : '') + ')</div>';
+    }
+    if(awards.topScorer && awards.topScorer.runs > 0){
+      html += '<div><b>Top scorer:</b> ' + esc(awards.topScorer.name) + ' - ' + awards.topScorer.runs + ' (' + awards.topScorer.balls + ')</div>';
+    }
+    if(awards.bestBowler){
+      html += '<div><b>Best bowling:</b> ' + esc(awards.bestBowler.name) + ' - ' + awards.bestBowler.wickets + '/' + awards.bestBowler.runsConceded + '</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function publishLive(){
+    if(!state || !state.shareEnabled || !state.shareCode || !shareConfigured()) return;
+    var inn = activeInnings();
+    if(!inn) return;
+    var snapshot = {
+      teamA: state.teamA, teamB: state.teamB,
+      battingTeam: inn.team,
+      runs: inn.runs, wickets: inn.wickets,
+      legalBalls: inn.legalBalls, oversLimit: inn.oversLimit,
+      currentInnings: state.currentInnings, target: state.target,
+      matchOver: state.matchOver, result: state.result,
+      awards: state.awards,
+      history: inn.history,
+      fallOfWickets: inn.fallOfWickets || [],
+      partnershipRuns: inn.runs - inn.partnershipStartRuns,
+      partnershipBalls: inn.legalBalls - inn.partnershipStartBalls,
+      trackPlayers: state.trackPlayers,
+      batsmen: inn.batsmen || [],
+      bowlers: inn.bowlers || [],
+      innings1Summary: (state.currentInnings === 2) ? {
+        team: state.innings1.team, runs: state.innings1.runs,
+        wickets: state.innings1.wickets, legalBalls: state.innings1.legalBalls,
+        oversLimit: state.innings1.oversLimit
+      } : null,
+      updatedAt: Date.now()
+    };
+    try{
+      fetch(FIREBASE_DB_URL + '/live/' + state.shareCode + '.json', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(snapshot)
+      }).catch(function(){ /* best-effort; scorer's own screen still works */ });
+    }catch(e){ /* fetch not available or blocked — scoring still works locally */ }
+  }
+
+  function groupOvers(history){
+    var overs = []; var cur = []; var legalCount = 0;
+    history.forEach(function(ev){
+      cur.push(ev);
+      if(ev.legal){
+        legalCount++;
+        if(legalCount === 6){ overs.push(cur); cur = []; legalCount = 0; }
+      }
+    });
+    return {complete: overs, current: cur};
+  }
+  function dotLabel(ev){
+    if(ev.type === 'w') return 'W';
+    if(ev.type === 'wd') return 'wd';
+    if(ev.type === 'nb') return 'nb';
+    if(ev.type === 'b') return ev.runs + 'b';
+    if(ev.type === 'lb') return ev.runs + 'lb';
+    return String(ev.runs);
+  }
+  function dotClass(ev){
+    if(ev.type === 'w') return 'wicket';
+    if(ev.type === 'wd' || ev.type === 'nb') return 'extra';
+    if(ev.type === 'run' && ev.runs === 6) return 'runs6';
+    if(ev.type === 'run' && ev.runs === 4) return 'runs4';
+    return '';
+  }
+  function oversStr(legalBalls, limit){
+    return Math.floor(legalBalls/6) + '.' + (legalBalls%6) + (limit ? (' / ' + limit) : '');
+  }
+
+  function render(){
+    if(!state) return;
+    var inn = activeInnings();
+    if(!inn) return;
+
+    document.getElementById('matchLine').textContent = state.teamA + ' vs ' + state.teamB;
+    document.getElementById('battingTeamName').textContent = inn.team + ' batting';
+    document.getElementById('runsVal').textContent = inn.runs;
+    document.getElementById('wicketsVal').textContent = inn.wickets;
+    document.getElementById('oversVal').textContent = oversStr(inn.legalBalls, inn.oversLimit);
+    var oversFloat = inn.legalBalls/6;
+    document.getElementById('crrVal').textContent = oversFloat > 0 ? (inn.runs/oversFloat).toFixed(2) : '0.00';
+
+    var targetLine = document.getElementById('targetLine');
+    if(state.currentInnings === 2 && state.target !== null){
+      var ballsLeft = (state.oversLimit*6) - inn.legalBalls;
+      var runsNeeded = state.target - inn.runs;
+      targetLine.classList.remove('hidden');
+      if(runsNeeded <= 0){ targetLine.textContent = 'Target reached'; }
+      else if(ballsLeft <= 0){ targetLine.textContent = 'Overs complete'; }
+      else {
+        var rrr = (runsNeeded/(ballsLeft/6)).toFixed(2);
+        targetLine.textContent = 'Need ' + runsNeeded + ' off ' + ballsLeft + ' balls - RRR ' + rrr;
+      }
+    } else {
+      targetLine.classList.add('hidden');
+    }
+
+    var shareBox = document.getElementById('shareBox');
+    if(state.shareEnabled && state.shareCode){
+      shareBox.classList.remove('hidden');
+      document.getElementById('shareCodeVal').textContent = state.shareCode;
+    } else {
+      shareBox.classList.add('hidden');
+    }
+
+    var creaseCard = document.getElementById('creaseCard');
+    if(state.trackPlayers && inn.batsmen.length){
+      creaseCard.classList.remove('hidden');
+      var striker = inn.batsmen[inn.strikerIdx];
+      var nonStriker = inn.batsmen[inn.nonStrikerIdx];
+      document.getElementById('strikerName').textContent = striker ? striker.name : '-';
+      document.getElementById('strikerStat').textContent = striker ? (striker.runs + ' (' + striker.balls + ')') : '0 (0)';
+      document.getElementById('nonStrikerName').textContent = nonStriker ? nonStriker.name : '-';
+      document.getElementById('nonStrikerStat').textContent = nonStriker ? (nonStriker.runs + ' (' + nonStriker.balls + ')') : '0 (0)';
+      var bowler = inn.bowlers[inn.currentBowlerIdx];
+      document.getElementById('bowlerName').textContent = bowler ? bowler.name : '-';
+      document.getElementById('bowlerFigures').textContent = bowler ? (oversStr(bowler.ballsBowled).split(' /')[0] + '-' + bowler.runsConceded + '-' + bowler.wickets) : '0.0-0-0';
+      document.getElementById('partnershipVal').textContent = (inn.runs - inn.partnershipStartRuns) + ' (' + (inn.legalBalls - inn.partnershipStartBalls) + ')';
+    } else {
+      creaseCard.classList.add('hidden');
+    }
+    document.getElementById('swapStrikeBtn').style.display = state.trackPlayers ? 'block' : 'none';
+
+    var grouped = groupOvers(inn.history);
+    var dotsWrap = document.getElementById('overDots');
+    dotsWrap.innerHTML = '';
+    var showEvents = grouped.current.length > 0 ? grouped.current : (grouped.complete.length ? grouped.complete[grouped.complete.length-1] : []);
+    if(showEvents.length === 0){
+      var span = document.createElement('div');
+      span.style.opacity = '0.5'; span.style.fontSize = '13px';
+      span.textContent = 'No balls bowled yet';
+      dotsWrap.appendChild(span);
+    } else {
+      showEvents.forEach(function(ev){
+        var d = document.createElement('div');
+        d.className = 'dot ' + dotClass(ev);
+        d.textContent = dotLabel(ev);
+        dotsWrap.appendChild(d);
+      });
+    }
+
+    document.getElementById('undoBtn').disabled = inn.history.length === 0;
+
+    var disable = inn.complete;
+    document.querySelectorAll('.run-btn, .extra-btn, #wicketBtn').forEach(function(b){ b.disabled = disable; });
+
+    var endBtn = document.getElementById('endInningsBtn');
+    if(inn.complete && state.currentInnings === 1){
+      endBtn.textContent = 'Start 2nd innings';
+      endBtn.onclick = safe(startSecondInnings);
+    } else {
+      endBtn.textContent = 'End innings';
+      endBtn.onclick = safe(endInningsManually);
+    }
+  }
+
+  function showGame(){ showScreen('gameArea'); render(); }
+
+  function buildScorecardHTML(inn1, inn2, trackPlayers){
+    if(!trackPlayers) return '';
+    var html = '';
+    [ [inn1,1], [inn2,2] ].forEach(function(pair){
+      var inn = pair[0];
+      if(!inn) return;
+      html += '<div class="scorecard-title">' + esc(inn.team) + ' - ' + inn.runs + '/' + inn.wickets + ' (' + oversStr(inn.legalBalls, inn.oversLimit).split(' /')[0] + ')</div>';
+      if(inn.batsmen && inn.batsmen.length){
+        html += '<table class="scorecard"><tr><th>Batting</th><th>R</th><th>B</th></tr>';
+        inn.batsmen.forEach(function(b){
+          html += '<tr><td>' + esc(b.name) + (b.out ? '' : ' *') + '</td><td>' + b.runs + '</td><td>' + b.balls + '</td></tr>';
+        });
+        html += '</table>';
+      }
+      if(inn.bowlers && inn.bowlers.length){
+        html += '<table class="scorecard"><tr><th>Bowling</th><th>O</th><th>R</th><th>W</th></tr>';
+        inn.bowlers.forEach(function(b){
+          html += '<tr><td>' + esc(b.name) + '</td><td>' + oversStr(b.ballsBowled).split(' /')[0] + '</td><td>' + b.runsConceded + '</td><td>' + b.wickets + '</td></tr>';
+        });
+        html += '</table>';
+      }
+      if(inn.fallOfWickets && inn.fallOfWickets.length){
+        html += '<div style="font-size:12px; color:rgba(245,241,230,0.6); margin-top:4px;">FoW: ' + inn.fallOfWickets.map(function(f){
+          return f.score + '-' + f.wicket + (f.batsman ? ' (' + esc(f.batsman) + ')' : '');
+        }).join(', ') + '</div>';
+      }
+    });
+    return html;
+  }
+
+  function showResult(){
+    showScreen('resultArea');
+    var r = state.result;
+    document.getElementById('resultTeam').textContent = r.winner ? r.winner : 'Match Tied';
+    document.getElementById('resultMargin').textContent = r.winner
+      ? r.text
+      : (state.innings1.team + ' ' + state.innings1.runs + '/' + state.innings1.wickets + '  -  ' + state.innings2.team + ' ' + state.innings2.runs + '/' + state.innings2.wickets);
+    var cardHTML = buildAwardsHTML(state.awards) + buildScorecardHTML(state.innings1, state.innings2, state.trackPlayers);
+    var scEl = document.getElementById('scorecardCard');
+    if(cardHTML){ scEl.innerHTML = cardHTML; scEl.classList.remove('hidden'); }
+    else { scEl.classList.add('hidden'); }
+  }
+
+  function matchSummaryText(){
+    var r = state.result;
+    var lines = [];
+    lines.push(state.teamA + ' vs ' + state.teamB);
+    lines.push(state.innings1.team + ' ' + state.innings1.runs + '/' + state.innings1.wickets + ' (' + oversStr(state.innings1.legalBalls, state.innings1.oversLimit).split(' /')[0] + ')');
+    if(state.innings2){
+      lines.push(state.innings2.team + ' ' + state.innings2.runs + '/' + state.innings2.wickets + ' (' + oversStr(state.innings2.legalBalls, state.innings2.oversLimit).split(' /')[0] + ')');
+    }
+    lines.push(r && r.winner ? r.winner + ' won - ' + r.text : 'Match tied');
+    if(state.awards && state.awards.motm){
+      lines.push('Player of the Match: ' + state.awards.motm.name);
+    }
+    return lines.join('\n');
+  }
+
+  function shareOnWhatsApp(text){
+    try{
+      if(navigator.share){
+        navigator.share({text: text}).catch(function(){ openWa(text); });
+      } else {
+        openWa(text);
+      }
+    }catch(e){ openWa(text); }
+  }
+  function openWa(text){
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+
+  function showSetup(){
+    document.getElementById('teamA').value = '';
+    document.getElementById('teamB').value = '';
+    document.getElementById('oversLimit').value = 6;
+    document.getElementById('playersLimit').value = 8;
+    document.getElementById('trackPlayers').checked = false;
+    document.getElementById('enableShare').checked = false;
+    document.getElementById('playerFields').classList.add('hidden');
+    document.getElementById('bat1').value = '';
+    document.getElementById('bat2').value = '';
+    document.getElementById('bowl1').value = '';
+    document.getElementById('squadA').value = '';
+    document.getElementById('squadB').value = '';
+    updateSquadMaxHints();
+    document.getElementById('shareNotConfiguredHint').classList.toggle('hidden', shareConfigured());
+    showScreen('screenSetup');
+  }
+
+  function startMatch(){
+    var teamA = document.getElementById('teamA').value.trim() || 'Team A';
+    var teamB = document.getElementById('teamB').value.trim() || 'Team B';
+    var overs = clamp(document.getElementById('oversLimit').value, 1, 50);
+    var players = clamp(document.getElementById('playersLimit').value, 2, 11);
+    var trackPlayers = document.getElementById('trackPlayers').checked;
+    var enableShare = document.getElementById('enableShare').checked;
+    if(enableShare && !shareConfigured()){
+      enableShare = false;
+      showToast('Live share isn\'t set up yet — starting without it.');
+    }
+    var openers = null;
+    var squadA = [], squadB = [];
+    if(trackPlayers){
+      squadA = parseSquad(document.getElementById('squadA').value, players);
+      squadB = parseSquad(document.getElementById('squadB').value, players);
+      openers = {
+        bat1: document.getElementById('bat1').value.trim() || squadA[0] || '',
+        bat2: document.getElementById('bat2').value.trim() || squadA[1] || '',
+        bowl1: document.getElementById('bowl1').value.trim() || squadB[0] || ''
+      };
+    }
+    state = newMatchState(teamA, teamB, overs, players, trackPlayers, enableShare, openers, squadA, squadB);
+    saveState();
+    publishLive();
+    showGame();
+  }
+
+  function showHistoryList(){
+    loadHistory(function(){
+      var body = document.getElementById('historyListBody');
+      if(!historyList.length){
+        body.innerHTML = '<div class="empty-state">No saved matches yet. Finish a match to see it here.</div>';
+      } else {
+        body.innerHTML = '';
+        historyList.forEach(function(m, idx){
+          var row = document.createElement('div');
+          row.className = 'history-item';
+          var dateStr = '';
+          try{ dateStr = new Date(m.date).toLocaleDateString(); }catch(e){ dateStr = ''; }
+          var scoreLine = (m.innings1 ? (m.innings1.runs+'/'+m.innings1.wickets) : '-') + (m.innings2 ? (' vs ' + m.innings2.runs+'/'+m.innings2.wickets) : '');
+          row.innerHTML =
+            '<div><div class="teams">' + esc(m.teamA) + ' vs ' + esc(m.teamB) + '</div>' +
+            '<div class="meta">' + esc(dateStr) + ' - ' + esc(scoreLine) + '</div></div>' +
+            '<div class="arrow">&gt;</div>';
+          row.addEventListener('click', safe(function(){ showHistoryDetail(idx); }));
+          body.appendChild(row);
+        });
+      }
+      showScreen('screenHistoryList');
+    });
+  }
+
+  function showHistoryDetail(idx){
+    var m = historyList[idx];
+    if(!m) return;
+    document.getElementById('hdTitle').textContent = m.teamA + ' vs ' + m.teamB;
+    document.getElementById('hdTeam').textContent = m.result && m.result.winner ? m.result.winner : 'Match Tied';
+    document.getElementById('hdMargin').textContent = m.result && m.result.winner
+      ? m.result.text
+      : ((m.innings1 ? m.innings1.team + ' ' + m.innings1.runs + '/' + m.innings1.wickets : '') + '  -  ' + (m.innings2 ? m.innings2.team + ' ' + m.innings2.runs + '/' + m.innings2.wickets : ''));
+    var cardHTML = buildAwardsHTML(m.awards) + buildScorecardHTML(m.innings1, m.innings2, m.trackPlayers);
+    var scEl = document.getElementById('hdScorecard');
+    if(cardHTML){ scEl.innerHTML = cardHTML; scEl.classList.remove('hidden'); }
+    else { scEl.classList.add('hidden'); }
+    showScreen('screenHistoryDetail');
+  }
+
+  function stopWatching(){
+    if(watchTimer){ clearInterval(watchTimer); watchTimer = null; }
+  }
+
+  function startWatching(code){
+    if(!shareConfigured()){
+      showToast('Live share isn\'t set up on this deployment yet.');
+      return;
+    }
+    watchCode = code;
+    localSet(WATCH_KEY, code);
+    document.getElementById('watchCodeInput').value = code;
+    document.getElementById('watchJoinCard').classList.add('hidden');
+    document.getElementById('watchBoardCard').classList.remove('hidden');
+    document.getElementById('wOversCard').classList.add('hidden');
+    document.getElementById('wScorecardCard').classList.add('hidden');
+    document.getElementById('wPrevInnings').classList.add('hidden');
+    document.getElementById('wPartnership').classList.add('hidden');
+    document.getElementById('wAwardsCard').classList.add('hidden');
+    document.getElementById('watchStatus').textContent = 'Connecting...';
+    fetchLive();
+    if(watchTimer) clearInterval(watchTimer);
+    watchTimer = setInterval(fetchLive, WATCH_POLL_MS);
+  }
+
+  function fetchLive(){
+    if(!watchCode) return;
+    var statusEl = document.getElementById('watchStatus');
+    if(!shareConfigured()){
+      statusEl.textContent = 'Live share isn\'t set up on this deployment yet.';
+      return;
+    }
+    fetch(FIREBASE_DB_URL + '/live/' + watchCode + '.json')
+      .then(function(r){ return r.json(); })
+      .then(function(snap){
+        if(!snap){
+          statusEl.textContent = 'No live match found for this code yet - waiting...';
+          return;
+        }
+        renderWatch(snap);
+      })
+      .catch(function(){
+        statusEl.textContent = 'Could not reach the live score service - retrying...';
+      });
+  }
+
+  function renderWatch(snap){
+    document.getElementById('wMatchLine').textContent = snap.teamA + ' vs ' + snap.teamB;
+    document.getElementById('wBattingTeamName').textContent = snap.battingTeam + ' batting';
+    document.getElementById('wRunsVal').textContent = snap.runs;
+    document.getElementById('wWicketsVal').textContent = snap.wickets;
+    document.getElementById('wOversVal').textContent = oversStr(snap.legalBalls, snap.oversLimit);
+    var oversFloat = snap.legalBalls/6;
+    document.getElementById('wCrrVal').textContent = oversFloat > 0 ? (snap.runs/oversFloat).toFixed(2) : '0.00';
+
+    var targetLine = document.getElementById('wTargetLine');
+    if(snap.currentInnings === 2 && snap.target !== null && snap.target !== undefined){
+      var ballsLeft = (snap.oversLimit*6) - snap.legalBalls;
+      var runsNeeded = snap.target - snap.runs;
+      targetLine.classList.remove('hidden');
+      if(runsNeeded <= 0){ targetLine.textContent = 'Target reached'; }
+      else if(ballsLeft <= 0){ targetLine.textContent = 'Overs complete'; }
+      else {
+        var rrr = (runsNeeded/(ballsLeft/6)).toFixed(2);
+        targetLine.textContent = 'Need ' + runsNeeded + ' off ' + ballsLeft + ' balls - RRR ' + rrr;
+      }
+    } else { targetLine.classList.add('hidden'); }
+
+    var prevEl = document.getElementById('wPrevInnings');
+    if(snap.innings1Summary){
+      var p = snap.innings1Summary;
+      prevEl.textContent = p.team + ' scored ' + p.runs + '/' + p.wickets + ' (' + oversStr(p.legalBalls, p.oversLimit).split(' /')[0] + ' overs)';
+      prevEl.classList.remove('hidden');
+    } else {
+      prevEl.classList.add('hidden');
+    }
+
+    var partEl = document.getElementById('wPartnership');
+    if(snap.trackPlayers && !snap.matchOver && snap.partnershipRuns !== undefined){
+      partEl.textContent = 'Partnership: ' + snap.partnershipRuns + ' (' + snap.partnershipBalls + ')';
+      partEl.classList.remove('hidden');
+    } else {
+      partEl.classList.add('hidden');
+    }
+
+    var awardsEl = document.getElementById('wAwardsCard');
+    if(snap.matchOver && snap.awards){
+      var ah = buildAwardsHTML(snap.awards);
+      if(ah){ awardsEl.innerHTML = ah; awardsEl.classList.remove('hidden'); }
+      else { awardsEl.classList.add('hidden'); }
+    } else {
+      awardsEl.classList.add('hidden');
+    }
+
+    // over-by-over
+    var oversCard = document.getElementById('wOversCard');
+    var oversList = document.getElementById('wOversList');
+    if(snap.history && snap.history.length){
+      oversCard.classList.remove('hidden');
+      oversList.innerHTML = '';
+      var grouped = groupOvers(snap.history);
+      var allOvers = grouped.complete.slice();
+      if(grouped.current.length) allOvers.push(grouped.current);
+      allOvers.forEach(function(overEvents, idx){
+        var row = document.createElement('div');
+        row.className = 'over-row';
+        var lbl = document.createElement('div');
+        lbl.className = 'over-label';
+        lbl.textContent = 'Ov ' + (idx+1);
+        row.appendChild(lbl);
+        var dotsWrap = document.createElement('div');
+        dotsWrap.className = 'dots';
+        overEvents.forEach(function(ev){
+          var d = document.createElement('div');
+          d.className = 'dot ' + dotClass(ev);
+          d.textContent = dotLabel(ev);
+          dotsWrap.appendChild(d);
+        });
+        row.appendChild(dotsWrap);
+        oversList.appendChild(row);
+      });
+      // most recent over first for quick glance
+      oversList.style.display = 'flex';
+      oversList.style.flexDirection = 'column-reverse';
+    } else {
+      oversCard.classList.add('hidden');
+    }
+
+    // scorecard
+    var scEl = document.getElementById('wScorecardCard');
+    if(snap.trackPlayers && ((snap.batsmen && snap.batsmen.length) || (snap.bowlers && snap.bowlers.length))){
+      var pseudoInn = {team: snap.battingTeam, runs: snap.runs, wickets: snap.wickets, legalBalls: snap.legalBalls, oversLimit: snap.oversLimit, batsmen: snap.batsmen, bowlers: snap.bowlers, fallOfWickets: snap.fallOfWickets};
+      scEl.innerHTML = buildScorecardHTML(pseudoInn, null, true);
+      scEl.classList.remove('hidden');
+    } else {
+      scEl.classList.add('hidden');
+    }
+
+    var statusEl = document.getElementById('watchStatus');
+    if(snap.matchOver && snap.result){
+      statusEl.textContent = snap.result.winner ? (snap.result.winner + ' - ' + snap.result.text) : 'Match tied';
+      stopWatching();
+    } else {
+      statusEl.textContent = 'Live - updated ' + new Date(snap.updatedAt).toLocaleTimeString();
+    }
+  }
+
+  document.getElementById('goNewMatch').addEventListener('click', safe(showSetup));
+  document.getElementById('goResume').addEventListener('click', safe(function(){
+    if(!state){ showToast('No match in progress.'); goHome(); return; }
+    if(state.matchOver) showResult(); else showGame();
+  }));
+  document.getElementById('goHistory').addEventListener('click', safe(showHistoryList));
+  document.getElementById('goWatch').addEventListener('click', safe(function(){
+    document.getElementById('watchJoinCard').classList.remove('hidden');
+    document.getElementById('watchBoardCard').classList.add('hidden');
+    document.getElementById('watchCodeInput').value = '';
+    showScreen('screenWatch');
+  }));
+  document.getElementById('backFromSetup').addEventListener('click', safe(goHome));
+  document.getElementById('backFromHistory').addEventListener('click', safe(goHome));
+  document.getElementById('backFromHistoryDetail').addEventListener('click', safe(showHistoryList));
+  document.getElementById('resultHomeBtn').addEventListener('click', safe(goHome));
+
+  document.getElementById('trackPlayers').addEventListener('change', function(){
+    document.getElementById('playerFields').classList.toggle('hidden', !this.checked);
+  });
+
+  function updateSquadMaxHints(){
+    var n = clamp(document.getElementById('playersLimit').value, 2, 11);
+    document.getElementById('squadAMax').textContent = n;
+    document.getElementById('squadBMax').textContent = n;
+  }
+  function trimSquadTextarea(ta){
+    var n = clamp(document.getElementById('playersLimit').value, 2, 11);
+    var lines = ta.value.split('\n');
+    if(lines.length > n){
+      ta.value = lines.slice(0, n).join('\n');
+      showToast('Max ' + n + ' names for this squad size.');
+    }
+  }
+  document.getElementById('playersLimit').addEventListener('input', updateSquadMaxHints);
+  document.getElementById('squadA').addEventListener('blur', function(){ trimSquadTextarea(this); });
+  document.getElementById('squadB').addEventListener('blur', function(){ trimSquadTextarea(this); });
+
+  document.getElementById('startBtn').addEventListener('click', safe(startMatch));
+
+  document.querySelectorAll('.run-btn').forEach(function(btn){
+    btn.addEventListener('click', safe(function(){ addRun(parseInt(btn.getAttribute('data-run'), 10)); }));
+  });
+  document.querySelectorAll('.extra-btn').forEach(function(btn){
+    btn.addEventListener('click', safe(function(){ addExtra(btn.getAttribute('data-extra')); }));
+  });
+  document.getElementById('wicketBtn').addEventListener('click', safe(addWicket));
+  document.getElementById('undoBtn').addEventListener('click', safe(undoLast));
+  document.getElementById('swapStrikeBtn').addEventListener('click', safe(function(){
+    var inn = activeInnings();
+    if(!inn || !state.trackPlayers) return;
+    swapStrike(inn);
+    saveState();
+    render();
+  }));
+  document.getElementById('waCodeBtn').addEventListener('click', safe(function(){
+    var code = state && state.shareCode;
+    if(!code) return;
+    var link = location.origin + location.pathname;
+    var text = 'Follow ' + state.teamA + ' vs ' + state.teamB + ' live! Open ' + link + ' -> Watch live score -> enter code ' + code;
+    shareOnWhatsApp(text);
+  }));
+  document.getElementById('shareResultBtn').addEventListener('click', safe(function(){
+    if(!state || !state.result) return;
+    shareOnWhatsApp(matchSummaryText());
+  }));
+  document.getElementById('copyCodeBtn').addEventListener('click', safe(function(){
+    var code = state && state.shareCode;
+    if(!code) return;
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(function(){ showToast('Code copied'); }).catch(function(){ showToast('Code: ' + code); });
+      } else {
+        showToast('Code: ' + code);
+      }
+    }catch(e){ showToast('Code: ' + code); }
+  }));
+
+  document.getElementById('resetBtn').addEventListener('click', safe(function(){
+    showModal({
+      title: 'Abandon this match?',
+      sub: "The current match will be cleared. This can't be undone.",
+      center: true,
+      submitText: 'Abandon match',
+      cancelText: 'Keep scoring',
+      onSubmit: function(){
+        state = null;
+        clearSavedState();
+        goHome();
+      }
+    });
+  }));
+  document.getElementById('newMatchBtn').addEventListener('click', safe(function(){
+    state = null;
+    clearSavedState();
+    showSetup();
+  }));
+
+  document.getElementById('watchJoinBtn').addEventListener('click', safe(function(){
+    var code = document.getElementById('watchCodeInput').value.trim().toUpperCase();
+    if(!code){ showToast('Enter a code to watch.'); return; }
+    startWatching(code);
+  }));
+  document.getElementById('stopWatchBtn').addEventListener('click', safe(function(){
+    stopWatching();
+    localRemove(WATCH_KEY);
+    watchCode = null;
+    goHome();
+  }));
+
+  window.addEventListener('error', function(e){
+    console.error('Unhandled error:', e.error || e.message);
+    showToast('Something went wrong - your match data is safe.');
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    console.error('Unhandled rejection:', e.reason);
+  });
+
+  loadState(function(){
+    if(state && !state.matchOver){
+      showGame();
+    } else {
+      var savedWatchCode = localGet(WATCH_KEY);
+      if(savedWatchCode && shareConfigured()){
+        showScreen('screenWatch');
+        startWatching(savedWatchCode);
+      } else {
+        goHome();
+      }
+    }
+  });
+
+  // This app is used purely via links now (no installable app), so it no
+  // longer registers a service worker. Any old one from an earlier version
+  // is proactively removed so returning visitors always get the latest
+  // deployed version instead of a stale cached copy.
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(r){ r.unregister(); });
+    }).catch(function(){});
+  }
+  if(window.caches && caches.keys){
+    caches.keys().then(function(keys){
+      keys.forEach(function(k){ caches.delete(k); });
+    }).catch(function(){});
+  }
+})();
+</script>
+</body>
+</html>
